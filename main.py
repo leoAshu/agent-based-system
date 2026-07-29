@@ -1,3 +1,5 @@
+import json
+
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.types import Command
@@ -5,6 +7,13 @@ from langgraph.types import Command
 from state import AgentState
 from nodes import query_records, display_records, ask_for_category
 from routes import route_after_query
+
+from utils import (
+    header,
+    subheader,
+    error,
+    divider
+)
 
 graph = StateGraph(AgentState)
 
@@ -28,7 +37,7 @@ checkpointer = InMemorySaver()
 app = graph.compile(checkpointer=checkpointer)
 
 if __name__ == '__main__':
-    print('Starting the agent-based system...')
+    header('Agent-Based System: Query Records by Category')
 
     category = input('Please enter a category to query records: ')
     initial_state = {
@@ -45,9 +54,10 @@ if __name__ == '__main__':
 
     result = app.invoke(initial_state, config=config)
     while '__interrupt__' in result:
-        print(result['__interrupt__'][0].value['message'])
+        error(result['__interrupt__'][0].value['message'])
+        divider()
         
-        new_category = input('Please enter a new category: ')
+        new_category = input('Please enter another category: ')
 
         result = app.invoke(
             Command(resume=new_category), 
@@ -55,5 +65,6 @@ if __name__ == '__main__':
         )
 
 
-
-    print('Final result:', result)
+    subheader('Final State')
+    print(json.dumps(result, indent=2))
+    divider()

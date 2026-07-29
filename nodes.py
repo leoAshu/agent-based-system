@@ -3,10 +3,15 @@ from langgraph.types import interrupt
 from state import AgentState
 from tools import get_records_by_category
 
+from utils import (
+    section,
+    success,
+    bullet
+)
 
 # Start Node
 def query_records(state: AgentState) -> dict:
-    print('Querying records...')
+    section('Querying records...')
 
     category = state.get('category', '')
     records = get_records_by_category(category)
@@ -17,12 +22,12 @@ def query_records(state: AgentState) -> dict:
 
 # Success Node
 def display_records(state: AgentState) -> dict:
-    print('Displaying records...')
+    success('Records found:')
 
     records = state.get('records', [])
     
     for record in records:
-        print(f"ID: {record['id']}, Category: {record['category']}, Amount: {record['amount']}")
+        bullet(f"ID: {record['id']}, Category: {record['category']}, Amount: {record['amount']}")
 
     return {}
 
