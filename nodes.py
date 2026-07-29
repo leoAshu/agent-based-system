@@ -1,3 +1,5 @@
+from langgraph.types import interrupt
+
 from state import AgentState
 from tools import get_records_by_category
 
@@ -26,11 +28,14 @@ def display_records(state: AgentState) -> dict:
 
 # Retry Node
 def ask_for_category(state: AgentState) -> dict:
-    print('No records found.')
+    category = state.get('category', '')
 
-    category = input('Please enter another category: ')
+    new_category = interrupt({
+        'message': 'No records found.',
+        'invalid_category': category,
+    })
     
     return {
-        'category': category,
+        'category': new_category,
         'records': []
     }

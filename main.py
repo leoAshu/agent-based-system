@@ -1,4 +1,6 @@
 from langgraph.graph import StateGraph, START, END
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.types import Command
 
 from state import AgentState
 from nodes import query_records, display_records, ask_for_category
@@ -22,7 +24,8 @@ graph.add_conditional_edges(
 graph.add_edge('display_records', END)
 graph.add_edge('ask_for_category', 'query_records')
 
-app = graph.compile()
+checkpointer = InMemorySaver()
+app = graph.compile(checkpointer=checkpointer)
 
 if __name__ == '__main__':
     print('Starting the agent-based system...')
@@ -32,6 +35,25 @@ if __name__ == '__main__':
         'category': category,
         'records': []
     }
+    
+    config = {
+        'configurable': {
+            'thread_id': 'thread-1',
+        }
+    }
 
-    result = app.invoke(initial_state)
+
+    result = app.invoke(initial_state, config=config)
+    while '__interrupt__' in result:
+        print(result['__interrupt__'][0].value['message'])
+        
+        new_category = input('Please enter a new category: ')
+
+        result = app.invoke(
+            Command(resume=new_category), 
+            config=config
+        )
+
+
+
     print('Final result:', result)
