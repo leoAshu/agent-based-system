@@ -29,7 +29,7 @@ graph.add_conditional_edges(
 graph.add_edge('deposits', 'generate_response')
 graph.add_edge('loans', 'generate_response')
 graph.add_edge('payments', 'generate_response')
-graph.add_edge('unknown', 'generate_response')
+graph.add_edge('unknown', END)
 graph.add_edge('generate_response', END)
 
 app = graph.compile()
@@ -38,7 +38,7 @@ result = app.invoke({
     "messages": [
         {
             "role": "user",
-            "content": "Show me the last 3 deposits."
+            "content": "Show me all payments."
         }
     ],
     "request": None,
@@ -53,7 +53,7 @@ result = app.invoke({
     "messages": [
         {
             "role": "user",
-            "content": "Pull up all the payments."
+            "content": "Display my loan transactions."
         }
     ],
     "request": None,
@@ -68,7 +68,7 @@ result = app.invoke({
     "messages": [
         {
             "role": "user",
-            "content": "List all the loans."
+            "content": "Show money credited into my account."
         }
     ],
     "request": None,
@@ -83,7 +83,7 @@ result = app.invoke({
     "messages": [
         {
             "role": "user",
-            "content": "Show me all the investments."
+            "content": "Show me all the heroes."
         }
     ],
     "request": None,
