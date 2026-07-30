@@ -1,4 +1,5 @@
 from langchain_ollama import ChatOllama
+from langgraph.types import interrupt
 from langchain_core.messages import ToolMessage, HumanMessage, SystemMessage, AIMessage
 
 from contracts import RecordRequest
@@ -64,12 +65,41 @@ def handle_deposits(state: AgentState) -> dict:
         'messages': [message]
     }
 
+def handle_transfer(state: AgentState) -> dict:
+    request = state['request']
+
+    approved = interrupt(
+        {
+            'action': 'transfer',
+            'recipient': request.recipient,
+            'amount': request.amount,
+        }
+    )
+
+    if approved:
+        return {
+            'messages': [
+                AIMessage(
+                    content=(
+                        f'Transfer of ${request.amount:.2f} '
+                        f'to {request.recipient} was approved.'
+                    )
+                )
+            ]
+        }
+
+    return {
+        'messages': [
+            AIMessage(content='The transfer was rejected.')
+        ]
+    }
+
 def handle_unknown(state: AgentState) -> dict:
     return {
-        "messages": [
+        'messages': [
             AIMessage(
                 content=(
-                    "I can only help with payments, loans, and deposits."
+                    'I can only help with fetching payments, loans, and deposits or making transfers.'
                 )
             )
         ]
