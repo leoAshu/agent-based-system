@@ -1,4 +1,5 @@
 from langgraph.graph import StateGraph, START, END
+from langgraph.checkpoint.memory import InMemorySaver
 
 from state import AgentState
 from nodes import (
@@ -32,7 +33,14 @@ graph.add_edge('payments', 'generate_response')
 graph.add_edge('unknown', END)
 graph.add_edge('generate_response', END)
 
-app = graph.compile()
+checkpointer = InMemorySaver()
+app = graph.compile(checkpointer=checkpointer)
+
+config = {
+    'configurable': {
+        'thread_id': 'session-1'
+    }
+}
 
 result = app.invoke({
     "messages": [
@@ -42,7 +50,9 @@ result = app.invoke({
         }
     ],
     "request": None,
-})
+    },
+    config=config
+)
 
 for message in result['messages']:
     print(type(message).__name__)
@@ -53,43 +63,17 @@ result = app.invoke({
     "messages": [
         {
             "role": "user",
-            "content": "Display my loan transactions."
+            "content": "Now show me deposits instead."
         }
     ],
     "request": None,
-})
+    },
+    config=config
+)
 
 for message in result['messages']:
     print(type(message).__name__)
     print(message.content)
     print()
 
-result = app.invoke({
-    "messages": [
-        {
-            "role": "user",
-            "content": "Show money credited into my account."
-        }
-    ],
-    "request": None,
-})
-
-for message in result['messages']:
-    print(type(message).__name__)
-    print(message.content)
-    print()
-
-result = app.invoke({
-    "messages": [
-        {
-            "role": "user",
-            "content": "Show me all the heroes."
-        }
-    ],
-    "request": None,
-})
-
-for message in result['messages']:
-    print(type(message).__name__)
-    print(message.content)
-    print()
+print(result)
