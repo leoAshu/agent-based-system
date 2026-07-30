@@ -1,13 +1,11 @@
-from langgraph.types import interrupt
+from langgraph.graph import MessagesState
 from langchain_ollama import ChatOllama
+from langgraph.prebuilt import ToolNode
 
-from state import AgentState
-from tools import get_records_by_category
-
-from utils import (
-    section,
-    success,
-    bullet
+from tools import (
+    get_deposits,
+    get_loans,
+    get_payments
 )
 
 model = ChatOllama(
@@ -15,61 +13,24 @@ model = ChatOllama(
     temperature=0
 )
 
-# Start Node - LLM based category extraction
-def extract_category(state: AgentState) -> dict:
-    prompt = f'''
-    Extract the record category from the user's request.
+llm_with_tools = model.bind_tools([
+    get_deposits,
+    get_loans,
+    get_payments
+])
 
-    Available categories:
-    - payments
-    - loans
-    - deposits
-
-    Return exactly one category from the list above.
-    Do not singularize, pluralize, rename, or explain it.
-
-    User request:
-    {state["user_request"]}
-    '''
-
-    response = model.invoke(prompt)
-    category = response.content.strip()
+def call_model(state: MessagesState) -> dict:
+    messages = state['messages']
+    response = llm_with_tools.invoke(messages)
 
     return {
-        'category': category
+        'messages': [response]
     }
 
-# Query Node
-def query_records(state: AgentState) -> dict:
-    section('Querying records...')
+tools = [
+    get_deposits,
+    get_loans,
+    get_payments
+]
 
-    category = state.get('category', '')
-    records = get_records_by_category(category)
-    
-    return {
-        'records': records
-    }
-
-# Success Node
-def display_records(state: AgentState) -> dict:
-    success('Records found:')
-
-    records = state.get('records', [])
-    
-    for record in records:
-        bullet(f"ID: {record['id']}, Category: {record['category']}, Amount: {record['amount']}")
-
-    return {}
-
-# Retry Node
-def ask_for_category(state: AgentState) -> dict:
-    category = state.get('category', '')
-
-    new_request = interrupt({
-        'message': f"No records found for '{category}' category",
-    })
-    
-    return {
-        'user_request': new_request,
-        'records': []
-    }
+tool_node = ToolNode(tools)

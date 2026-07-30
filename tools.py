@@ -26,4 +26,3 @@ def get_loans() -> list:
 def get_deposits() -> list:
     """Retrieve all deposit records."""
     return get_records_by_category('deposits')
-
