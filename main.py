@@ -61,10 +61,20 @@ if __name__ == '__main__':
     )
 
     while '__interrupt__' in result:
-        print(result['__interrupt__'])
+        interrupt_data = result["__interrupt__"][0].value
+
+        recipient = interrupt_data["recipient"]
+        amount = interrupt_data["amount"]
+
+        answer = input(
+            f"Approve transfer of ${amount:.2f} "
+            f"to {recipient}? (yes/no): "
+        ).strip().lower()
+
+        approved = answer in {"yes", "y"}
 
         result = app.invoke(
-            Command(resume=False), 
+            Command(resume=approved), 
             config=config
         )
         
